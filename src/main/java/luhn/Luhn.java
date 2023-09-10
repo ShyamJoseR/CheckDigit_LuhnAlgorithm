@@ -1,34 +1,31 @@
 package luhn;
 
-public class Luhn {
+import java.util.LinkedList;
+import java.util.List;
 
-    private Integer sumOfOddPlaces = 0;
-    private Integer sumOfEvenPlaces = 0;
-    private Integer sumOfOddAndEvenPlaces = 0;
-    private Integer modulusValue = 0;
-    private Integer missingDigitPosition = 0;
-    private Integer missingDigitValue;
-    private Boolean isEligibleToCompute;
+public class Luhn {
+    private static Integer missingDigitLuhnPosition = 0;
+    private static Integer missingDigitPosition = 0;
+    private static Integer missingDigitValue;
+    private static Boolean isEligibleToCompute;
+    private static List<Character> listOfInputCharacters;
 
     /**
      * Getter Methods
      */
-    public Integer getMissingDigitPosition() {
+    public static Integer getmissingDigitPosition() {
         return missingDigitPosition;
     }
 
-    public Integer getMissingDigitValue() {
+    public static Integer getMissingDigitValue() {
         return missingDigitValue;
     }
 
-    public Boolean getIsEligibleToCompute() {
+    public static Boolean getIsEligibleToCompute() {
         return isEligibleToCompute;
     }
 
-    /** Constructor*/
-
-
-    /** Private Methods*/
+    /** Private Static Methods*/
 
     /**
      * evenPlaceMapper() Method
@@ -50,7 +47,7 @@ public class Luhn {
      *                8   -->     7
      *                9   -->     9
      */
-    private Integer evenPlaceMapper(Integer integer) {
+    private static Integer evenPlaceMapper(Integer integer) {
         return (((integer * 2) / 10) + ((integer * 2) % 10));
     }
 
@@ -76,12 +73,15 @@ public class Luhn {
      *                8   -->     7   -->     8
      *                9   -->     9   -->     9
      */
-    private Integer evenPlaceReverseMapper(Integer integer) {
+    private static Integer evenPlaceReverseMapper(Integer integer) {
         return (((integer * 5) / 10) + ((integer * 5) % 10));
     }
 
+    /** Public Static Methods*/
+
     /**
      * isEligible() Method
+     *
      * @param input Used to Check the below pre-requisites like
      *              1. Check if the input string is only numbers and only one'?' symbol
      *              2. Log info to correct the input if the input String is not in expected format
@@ -91,23 +91,29 @@ public class Luhn {
      *              (iii)   compute 'sumOfOddAndEvenPlaces', 'modulusValue' and 'missingDigitValue'
      *              4. Return true if all validations are successful else return false
      */
-    public boolean isEligible(String input) {
+    public static boolean isEligible(String input) {
         isEligibleToCompute = true;
+        Integer sumOfEvenPlaces = 0;
+        Integer sumOfOddPlaces = 0;
+        Integer sumOfOddAndEvenPlaces = 0;
+        Integer modulusValue = 0;
         char[] charArray = input.toCharArray();
         Character character;
         Integer integer;
         int missingCount = 0;
+        listOfInputCharacters = new LinkedList<>();
         for (int i = charArray.length, j = 1; i > 0; i--, j++) {
             character = charArray[i - 1];
+            listOfInputCharacters.add(character);
             try {
                 integer = Integer.parseInt(character.toString());
                 if (j % 2 == 0)
-                    sumOfEvenPlaces = sumOfEvenPlaces + this.evenPlaceMapper(integer);
+                    sumOfEvenPlaces = sumOfEvenPlaces + evenPlaceMapper(integer);
                 else
                     sumOfOddPlaces = sumOfOddPlaces + integer;
             } catch (NumberFormatException numberFormatException) {
                 if (character == '?' && missingCount == 0) {
-                    missingDigitPosition = j;
+                    missingDigitLuhnPosition = j;
                     missingCount++;
                 } else if (missingCount > 0) {
                     System.out.println("The input string '" + input + "' has a second '?' missing digit at position " + i + "." +
@@ -115,22 +121,25 @@ public class Luhn {
                             "\nPlease enter data with only one missing digit (?) to return valid results.");
 
                 } else {
-                    System.out.println("The input string '" + input + "' has invalid characters '" + character + "' at position " + i + ".\nOnly integers and '?' mark are allowed in the input String.\nPlease enter valid data to return valid results.");
+                    System.out.println("The input string '" + input + "' has invalid characters '" + character + "' at position " + i + "." +
+                            "\nOnly integers and '?' mark are allowed in the input String." +
+                            "\nPlease enter valid data to return valid results.");
                     isEligibleToCompute = false;
                     sumOfOddPlaces = 0;
                     sumOfEvenPlaces = 0;
-                    missingDigitPosition = 0;
+                    missingDigitLuhnPosition = 0;
                     missingDigitValue = null;
                     break;
                 }
             }
         }
         sumOfOddAndEvenPlaces = sumOfOddPlaces + sumOfEvenPlaces;
-        modulusValue = (sumOfOddAndEvenPlaces%10);
+        modulusValue = (sumOfOddAndEvenPlaces % 10);
         if (modulusValue % 10 != 0)
             missingDigitValue = 10 - modulusValue;
-        if (missingDigitPosition % 2 == 0)
-            missingDigitValue = this.evenPlaceReverseMapper(missingDigitValue);
+        if (missingDigitLuhnPosition % 2 == 0)
+            missingDigitValue = evenPlaceReverseMapper(missingDigitValue);
+        missingDigitPosition = listOfInputCharacters.size() - missingDigitLuhnPosition + 1;
         return isEligibleToCompute;
     }
 
@@ -138,14 +147,43 @@ public class Luhn {
      * clear() Method
      * To clear out all the private variables to their default value
      */
-    public void clear() {
-        sumOfOddPlaces = 0;
-        sumOfEvenPlaces = 0;
-        sumOfOddAndEvenPlaces = 0;
-        modulusValue = 0;
-        missingDigitPosition = 0;
+    public static void clear() {
+        missingDigitLuhnPosition = 0;
         missingDigitValue = null;
         isEligibleToCompute = true;
+    }
+
+    /**
+     * findMissingDigit() Method
+     *
+     * @param input Used to return the missing digit in the string
+     *              1. Check if the input string is in valid format
+     *              2. If it is valid, the method returns the missing number using Luhn's Algorithm
+     *              3. If it is not valid, the method returns null
+     */
+    public static Integer findMissingDigit(String input) {
+        if (isEligible(input))
+            return missingDigitValue;
+        else
+            return null;
+    }
+
+    /**
+     * validNumber() Method
+     * @param input Used to return the string by filling in the valid value in place of '?' mark
+     */
+    public static String validNumber(String input) {
+        if (isEligible(input)) {
+            String validString = "";
+            for (int i = listOfInputCharacters.size();i>0;i--){
+                if(i == (missingDigitLuhnPosition))
+                    validString = validString + missingDigitValue.toString();
+                else
+                    validString = validString + listOfInputCharacters.get(i-1);
+            }
+            return validString;
+        } else
+            return null;
     }
 
 
